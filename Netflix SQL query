@@ -1,0 +1,89 @@
+#Creating the database/table
+CREATE DATABASE netflix;
+use netflix;
+
+DROP TABLE netflix;
+CREATE TABLE netflix(
+	show_id varchar(50),
+    show_type varchar(50),
+    title varchar(50),
+    director varchar(50),
+    cast varchar(50),
+    country varchar(50),
+    date_added varchar(50),
+    release_year varchar(50),
+    rating varchar(50),
+    duration varchar(50),
+    listed_in varchar(50),
+    movie_plot varchar(50));
+    
+SET GLOBAL local_infile = 1;
+load data local infile "C:/Users/cwake/Downloads/netflix_titles.csv(1)" INTO TABLE netflix_titles
+FIELDS TERMINATED BY ","
+IGNORE 1 LINES;
+
+#Reviewing results
+Select * from netflix.netflix_titles;
+
+#Movies vs TV Shows
+select show_type, count(*) from test.netflix
+WHERE show_type is not null
+group by show_type
+
+#Movie Ratings
+select rating, count(*) as num_films from netflix.netflix_titles
+WHERE show_type = "Movie" and rating IS NOT Null
+group by rating
+
+#TV Show Ratings
+select rating, count(*) as num_films from netflix.netflix_titles
+WHERE show_type = "TV Show" and rating IS NOT Null
+group by rating
+
+#Show ratings compared
+select show_type, rating, count(*) as num_films from netflix.netflix_titles
+WHERE rating IS NOT Null
+group by rating, show_type
+
+#Films per genres
+select listed_in as Genres, count(*) as num_of_genres from netflix.netflix_titles
+where show_type = "Movie"
+group by Genres
+order by count(*) desc
+limit 20
+
+#TV Shows per genre
+select listed_in as Genres, count(*) as num_of_genres from netflix.netflix_titles
+where show_type = "TV Show"
+group by Genres
+order by count(*) desc
+limit 20
+
+#Highest metascore rated film
+select netflix.netflix_titles.title, netflix.imdb_movies.avg_vote, netflix.imdb_movies.metascore from netflix.netflix_titles
+INNER JOIN netflix.imdb_movies 
+on netflix_titles.title = imdb_movies.title
+WHERE metascore IS NOT NULL
+ORDER BY metascore desc
+
+
+#Films with metascore higher than 85
+select netflix.netflix_titles.title, netflix.netflix_titles.release_year, netflix.imdb_movies.metascore from netflix.netflix_titles
+INNER JOIN netflix.imdb_movies 
+on netflix_titles.title = imdb_movies.title
+WHERE metascore IS NOT NULL and metascore > "85.0"
+ORDER BY release_year desc
+
+#Top metascore rated movies
+select netflix.netflix_titles.title, netflix.netflix_titles.show_type, netflix.netflix_titles.movie_plot, netflix.imdb_movies.avg_vote, netflix.imdb_movies.metascore from netflix.netflix_titles
+INNER JOIN netflix.imdb_movies 
+on netflix_titles.title = imdb_movies.title
+WHERE metascore IS NOT NULL and show_type = "TV Show"
+ORDER BY metascore desc
+
+#Countries with most single origin films
+select country, count(*) as Num_film from netflix.netflix_titles
+WHERE show_type = "Movie" and country NOT LIKE "%,%"
+group by country
+Order by count(*) desc 
+Limit 25
